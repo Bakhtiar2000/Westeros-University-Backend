@@ -8,6 +8,4 @@ router.post('/create-student', StudentControllers.createStudent);
 router.get('/', StudentControllers.getAllStudents);
 router.get('/:id', StudentControllers.getSingleStudent);
 
-console.log('Hello');
-
 export const StudentRoutes = router;
