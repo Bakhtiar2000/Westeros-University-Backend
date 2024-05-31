@@ -6,4 +6,5 @@ dotenv.config({ path: path.join(process.cwd(), '.env') }); //process.cwd() retur
 export default {
   port: process.env.PORT,
   database_url: process.env.DATABASE_URL,
+  bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
 }; //This file is created basically for managing the process.env data. All other folders get access to env data from this config folder.
