@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import bcrypt from 'bcrypt';
 import {
   TGuardian,
   TLocalGuardian,
@@ -7,7 +6,6 @@ import {
   StudentModel,
   TUserName,
 } from './student.interface';
-import config from '../../config';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -80,10 +78,11 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: [true, 'ID is required'],
       unique: true, // unique fields should have unique: true
     },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      maxlength: [20, 'Password cannot have more than 20 characters'],
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'user id required'],
+      unique: true,
+      ref: 'User', // Create a referencing with User Data
     },
     name: { type: userNameSchema, required: [true, 'Name is required'] },
     gender: {
@@ -137,11 +136,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     profileImg: {
       type: String,
     },
-    isActive: {
-      type: String,
-      enum: ['active', 'blocked'],
-      default: 'active',
-    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -157,23 +151,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
 //----------------------Virtual---------------------------
 studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
-});
-
-// -----------------Document (save / remove) Middleware / hook (Pre + Post)-------------------
-studentSchema.pre('save', async function (next) {
-  // Hashing password before saving
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  this.password = await bcrypt.hash(
-    this.password, //this= current user document
-    Number(config.bcrypt_salt_rounds),
-  );
-  next();
-});
-
-studentSchema.post('save', function (doc, next) {
-  //Posting password empty in database
-  doc.password = '';
-  next();
 });
 
 // -----------------Query (find / findOne) Middleware / hook (Pre + Post)-------------------
