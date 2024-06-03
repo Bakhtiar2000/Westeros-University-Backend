@@ -1,32 +1,32 @@
 import config from '../../config';
+import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
+import generateStudentId from './user.utils';
 
-const createStudentIntoDB = async (password: string, studentData: TStudent) => {
-  // const student = new Student(studentData); //Created an instance
-  // if (await student.isUserExists(studentData.id)) {
-  //   throw new Error('User already exists');
-  // }
-  //const result = await student.save(); // built in instance method
-
-  //   if (await Student.isUserExists(studentData.id)) {
-  //     throw new Error('User already exists');
-  //   }
-
+const createStudentIntoDB = async (password: string, payload: TStudent) => {
   const userData: Partial<TUser> = {};
   userData.password = password || (config.default_pass as string);
   userData.role = 'student';
-  userData.id = '2030100001'; // manually generated Id (Should have been auto generated)
+
+  const admissionSemester = await AcademicSemester.findById(
+    payload.admissionSemester,
+  );
+  if (!admissionSemester) {
+    throw new Error('Admission semester not found');
+  }
+
+  userData.id = await generateStudentId(admissionSemester); // As generateStudentId is an asynchronous function (in is written in async), we use await here
 
   const newUser = await User.create(userData);
 
   if (Object.keys(newUser).length) {
-    studentData.id = newUser.id;
-    studentData.user = newUser._id; // reference id
+    payload.id = newUser.id;
+    payload.user = newUser._id; // reference id
 
-    const newStudent = await Student.create(studentData);
+    const newStudent = await Student.create(payload);
     return newStudent;
   }
 };
