@@ -82,7 +82,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       type: Schema.Types.ObjectId,
       required: [true, 'user id required'],
       unique: true,
-      ref: 'User', // Create a referencing with User Data
+      ref: 'User', // Create a referencing with User Data. User is the collection name
     },
     name: { type: userNameSchema, required: [true, 'Name is required'] },
     gender: {
