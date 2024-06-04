@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 import { TAcademicDepartment } from './academicDepartment.interface';
 import AppError from '../../errors/AppError';
 import httpStatus from 'http-status';
@@ -31,15 +31,13 @@ academicDepartmentSchema.pre('save', async function (next) {
 
 academicDepartmentSchema.pre('findOneAndUpdate', async function (next) {
   const query = this.getQuery(); // takes the parameter given to findOneAndUpdate function
-  console.log(query);
+  if (query._id && !mongoose.Types.ObjectId.isValid(query._id)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid department ID format');
+  }
   const isDepartmentExists = await AcademicDepartment.findOne(query);
-  console.log(isDepartmentExists);
   if (!isDepartmentExists) {
-    console.log('Inside department');
     throw new AppError(httpStatus.NOT_FOUND, 'This department does not exist!');
   }
-
-  console.log('Outside department');
   next();
 });
 
