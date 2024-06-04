@@ -6,6 +6,8 @@ import {
   StudentModel,
   TUserName,
 } from './student.interface';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -169,6 +171,19 @@ studentSchema.pre('find', function (next) {
 
 studentSchema.pre('findOne', function (next) {
   this.find({ isDeleted: { $ne: true } }); //this= current query
+  next();
+});
+
+studentSchema.pre('findOneAndUpdate', async function (next) {
+  const query = this.getQuery();
+  console.log(query);
+  const isStudentExists = await Student.findOne(query);
+  console.log(isStudentExists);
+  if (!isStudentExists) {
+    console.log('Inside');
+    throw new AppError(httpStatus.NOT_FOUND, 'This Student does not exist!');
+  }
+  console.log('Outside');
   next();
 });
 
