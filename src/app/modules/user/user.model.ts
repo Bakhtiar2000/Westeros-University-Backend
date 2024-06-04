@@ -2,6 +2,8 @@ import { Schema, model } from 'mongoose';
 import { TUser } from './user.interface';
 import config from '../../config';
 import bcrypt from 'bcrypt';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
 const userSchema = new Schema<TUser>(
   {
     id: {
@@ -50,6 +52,15 @@ userSchema.pre('save', async function (next) {
 userSchema.post('save', function (doc, next) {
   //Posting password empty in database
   doc.password = '';
+  next();
+});
+
+userSchema.pre('findOneAndUpdate', async function (next) {
+  const query = this.getQuery();
+  const isUserExists = await User.findOne(query);
+  if (!isUserExists) {
+    throw new AppError(httpStatus.NOT_FOUND, 'This User does not exist!');
+  }
   next();
 });
 
