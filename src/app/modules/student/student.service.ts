@@ -3,6 +3,7 @@ import { Student } from './student.model';
 import AppError from '../../errors/AppError';
 import httpStatus from 'http-status';
 import { User } from '../user/user.model';
+import { TStudent } from './student.interface';
 
 const getAllStudentsFromDB = async () => {
   const result = await Student.find()
@@ -65,8 +66,14 @@ const deleteStudentFromDB = async (id: string) => {
   }
 };
 
+const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
+  const result = await Student.findOneAndUpdate({ id: id }, payload);
+  return result;
+};
+
 export const StudentServices = {
   getAllStudentsFromDB,
   getSingleStudentFromDB,
   deleteStudentFromDB,
+  updateStudentIntoDB,
 };

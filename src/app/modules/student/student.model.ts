@@ -176,14 +176,10 @@ studentSchema.pre('findOne', function (next) {
 
 studentSchema.pre('findOneAndUpdate', async function (next) {
   const query = this.getQuery();
-  console.log(query);
   const isStudentExists = await Student.findOne(query);
-  console.log(isStudentExists);
   if (!isStudentExists) {
-    console.log('Inside');
     throw new AppError(httpStatus.NOT_FOUND, 'This Student does not exist!');
   }
-  console.log('Outside');
   next();
 });
 
