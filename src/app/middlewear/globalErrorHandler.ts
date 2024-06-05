@@ -7,6 +7,8 @@ import { TErrorSources } from '../interface/error';
 import config from '../config';
 import handleZodError from '../errors/handleZodError';
 import handleMongooseValidationError from '../errors/handleMongooseValidationError';
+import handleMongooseCastError from '../errors/handleMongooseCastError';
+import handleDuplicateError from '../errors/handleDuplicateError';
 
 // As we use ErrorRequestHandler, we don't need to use type for err, req, res, next
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -26,6 +28,17 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     errorSources = simplifiedError?.errorSources;
   } else if (err?.name === 'ValidationError') {
     const simplifiedError = handleMongooseValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleMongooseCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
+    console.log('duplicate');
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
