@@ -9,11 +9,12 @@ import handleZodError from '../errors/handleZodError';
 import handleMongooseValidationError from '../errors/handleMongooseValidationError';
 import handleMongooseCastError from '../errors/handleMongooseCastError';
 import handleDuplicateError from '../errors/handleDuplicateError';
+import AppError from '../errors/AppError';
 
 // As we use ErrorRequestHandler, we don't need to use type for err, req, res, next
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  let statusCode = err.statusCode || 500;
-  let message = err.message || 'Something went wrong!';
+  let statusCode = 500;
+  let message = 'Something went wrong!';
   let errorSources: TErrorSources = [
     {
       path: '',
@@ -21,27 +22,38 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     },
   ];
 
+  const handleError = (errorFunction: any, err: any) => {
+    const simplifiedError = errorFunction(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  };
+
   if (err instanceof ZodError) {
-    const simplifiedError = handleZodError(err);
-    statusCode = simplifiedError?.statusCode;
-    message = simplifiedError?.message;
-    errorSources = simplifiedError?.errorSources;
+    handleError(handleZodError, err);
   } else if (err?.name === 'ValidationError') {
-    const simplifiedError = handleMongooseValidationError(err);
-    statusCode = simplifiedError?.statusCode;
-    message = simplifiedError?.message;
-    errorSources = simplifiedError?.errorSources;
+    handleError(handleMongooseValidationError, err);
   } else if (err?.name === 'CastError') {
-    const simplifiedError = handleMongooseCastError(err);
-    statusCode = simplifiedError?.statusCode;
-    message = simplifiedError?.message;
-    errorSources = simplifiedError?.errorSources;
+    handleError(handleMongooseCastError, err);
   } else if (err?.code === 11000) {
-    const simplifiedError = handleDuplicateError(err);
-    console.log('duplicate');
-    statusCode = simplifiedError?.statusCode;
-    message = simplifiedError?.message;
-    errorSources = simplifiedError?.errorSources;
+    handleError(handleDuplicateError, err);
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err.message;
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
+  } else if (err instanceof Error) {
+    message = err.message;
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
   }
 
   //Final Return
