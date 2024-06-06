@@ -9,7 +9,10 @@ const createCourseIntoDB = async (payload: TCourse) => {
 
 const getAllCoursesFromDB = async (query: Record<string, unknown>) => {
   const CourseSearchableFields = ['title', 'prefix', 'code'];
-  const courseQuery = new QueryBuilder(Course.find(), query)
+  const courseQuery = new QueryBuilder(
+    Course.find().populate('preRequisiteCourses.course'),
+    query,
+  )
     .search(CourseSearchableFields)
     .filter()
     .sort()
