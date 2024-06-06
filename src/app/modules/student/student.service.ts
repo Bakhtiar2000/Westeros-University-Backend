@@ -9,6 +9,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   // Record<string, unknown> means query can be any object where the keys are strings and the values are of any type.
   const queryObj = { ...query }; // copying query
   console.log(query);
+
   let searchTerm = '';
   if (query?.searchTerm) {
     searchTerm = query?.searchTerm as string;
@@ -23,10 +24,8 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   });
 
   //Filtering
-  const excludeFields = ['searchTerm', 'sort'];
+  const excludeFields = ['searchTerm', 'sort', 'limit'];
   excludeFields.forEach((elem) => delete queryObj[elem]); // deletes searchTerm (which is to be partial match) from the query and saves the other queries (exact match queries) like email
-
-  console.log(queryObj);
   const filterQuery = searchQuery
     .find(queryObj) // Exact match find() operation
     .populate('admissionSemester')
@@ -37,14 +36,21 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
       },
     });
 
-  let sortField = '-createdAt'; //
+  let sortField = '-createdAt'; // Add sort in excludeFields as well
   if (query.sort) {
     sortField = query.sort as string;
   }
+  const sortQuery = filterQuery.sort(sortField);
 
-  const sortQuery = await filterQuery.sort(sortField);
+  let limit = 1; // Add limit in excludeFields as well
+  if (query.limit) {
+    limit = Number(query.limit);
+  }
 
-  return sortQuery;
+  console.log(limit);
+  const limitQuery = await sortQuery.limit(limit); // Await should be in the last query (which is to be returned) of the filtering chaining
+  console.log(queryObj);
+  return limitQuery;
 };
 
 const getSingleStudentFromDB = async (id: string) => {
