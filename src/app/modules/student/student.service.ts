@@ -5,8 +5,30 @@ import httpStatus from 'http-status';
 import { User } from '../user/user.model';
 import { TStudent } from './student.interface';
 
-const getAllStudentsFromDB = async () => {
-  const result = await Student.find()
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  // Record<string, unknown> means query can be any object where the keys are strings and the values are of any type.
+  const queryObj = { ...query }; // copying query
+  console.log(query);
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+
+  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+  const searchQuery = Student.find({
+    // Partial match find() operation
+    $or: studentSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' }, // option 'i' makes the search case-insensitive.
+    })),
+  });
+
+  //Filtering
+  const excludeFields = ['searchTerm', 'sort'];
+  excludeFields.forEach((elem) => delete queryObj[elem]); // deletes searchTerm (which is to be partial match) from the query and saves the other queries (exact match queries) like email
+
+  console.log(queryObj);
+  const filterQuery = searchQuery
+    .find(queryObj) // Exact match find() operation
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -14,7 +36,15 @@ const getAllStudentsFromDB = async () => {
         path: 'academicFaculty', // Inside academic department. We can see the details of academic faculty
       },
     });
-  return result;
+
+  let sortField = '-createdAt'; //
+  if (query.sort) {
+    sortField = query.sort as string;
+  }
+
+  const sortQuery = await filterQuery.sort(sortField);
+
+  return sortQuery;
 };
 
 const getSingleStudentFromDB = async (id: string) => {
