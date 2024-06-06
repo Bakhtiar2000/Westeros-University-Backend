@@ -5,15 +5,15 @@ import { validateRequest } from '../../middleWear/validateRequest';
 
 const router = express.Router();
 
-router.get('/:id', FacultyControllers.getSingleFaculty);
+router.get('/:facultyId', FacultyControllers.getSingleFaculty);
 
 router.patch(
-  '/:id',
+  '/:facultyId',
   validateRequest(updateFacultyValidationSchema),
   FacultyControllers.updateFaculty,
 );
 
-router.delete('/:id', FacultyControllers.deleteFaculty);
+router.delete('/:facultyId', FacultyControllers.deleteFaculty);
 
 router.get('/', FacultyControllers.getAllFaculties);
 
