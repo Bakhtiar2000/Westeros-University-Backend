@@ -8,13 +8,13 @@ import { TStudent } from './student.interface';
 const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   // Record<string, unknown> means query can be any object where the keys are strings and the values are of any type.
   const queryObj = { ...query }; // copying query
-  console.log(query);
 
   let searchTerm = '';
   if (query?.searchTerm) {
     searchTerm = query?.searchTerm as string;
   }
 
+  //-------------------Searching---------------------
   const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
   const searchQuery = Student.find({
     // Partial match find() operation
@@ -23,9 +23,10 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
     })),
   });
 
-  //Filtering
-  const excludeFields = ['searchTerm', 'sort', 'limit'];
+  //-------------------Filtering---------------------
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page'];
   excludeFields.forEach((elem) => delete queryObj[elem]); // deletes searchTerm (which is to be partial match) from the query and saves the other queries (exact match queries) like email
+  console.log({ query }, { queryObj });
   const filterQuery = searchQuery
     .find(queryObj) // Exact match find() operation
     .populate('admissionSemester')
@@ -36,20 +37,26 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
       },
     });
 
+  //-------------------Sorting---------------------
   let sortField = '-createdAt'; // Add sort in excludeFields as well
   if (query.sort) {
     sortField = query.sort as string;
   }
   const sortQuery = filterQuery.sort(sortField);
 
+  //-------------------Paginating and Limiting---------------------
+  let page = 1;
   let limit = 1; // Add limit in excludeFields as well
+  let skip = 0;
   if (query.limit) {
     limit = Number(query.limit);
   }
-
-  console.log(limit);
-  const limitQuery = await sortQuery.limit(limit); // Await should be in the last query (which is to be returned) of the filtering chaining
-  console.log(queryObj);
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+  const paginateQuery = sortQuery.skip(skip);
+  const limitQuery = await paginateQuery.limit(limit); // Await should be in the last query (which is to be returned) of the filtering chaining
   return limitQuery;
 };
 
