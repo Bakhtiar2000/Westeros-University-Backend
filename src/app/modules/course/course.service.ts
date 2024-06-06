@@ -1,5 +1,4 @@
 import QueryBuilder from '../../builder/QueryBuilder';
-import { CourseSearchableFields } from './course.constant';
 import { TCourse } from './course.interface';
 import { Course } from './course.model';
 
@@ -9,6 +8,7 @@ const createCourseIntoDB = async (payload: TCourse) => {
 };
 
 const getAllCoursesFromDB = async (query: Record<string, unknown>) => {
+  const CourseSearchableFields = ['title', 'prefix', 'code'];
   const courseQuery = new QueryBuilder(Course.find(), query)
     .search(CourseSearchableFields)
     .filter()
