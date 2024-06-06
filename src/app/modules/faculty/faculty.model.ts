@@ -97,8 +97,8 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
     profileImg: { type: String },
     academicDepartment: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User id is required'],
-      ref: 'User',
+      required: [true, 'Academic Department is required'],
+      ref: 'AcademicDepartment',
     },
     isDeleted: {
       type: Boolean,
@@ -116,9 +116,9 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
 facultySchema.virtual('fullName').get(function () {
   return (
     this?.name?.firstName +
-    '' +
+    ' ' +
     this?.name?.middleName +
-    '' +
+    ' ' +
     this?.name?.lastName
   );
 });

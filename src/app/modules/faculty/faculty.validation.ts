@@ -42,7 +42,7 @@ export const updateFacultyValidationSchema = z.object({
   body: z.object({
     faculty: z.object({
       designation: z.string().optional(),
-      name: updateUserNameValidationSchema,
+      name: updateUserNameValidationSchema.optional(),
       gender: z.enum(['male', 'female', 'other']).optional(),
       dateOfBirth: z.string().optional(),
       email: z.string().email().optional(),
