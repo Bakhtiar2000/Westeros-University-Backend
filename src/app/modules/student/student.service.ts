@@ -24,7 +24,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   });
 
   //-------------------Filtering---------------------
-  const excludeFields = ['searchTerm', 'sort', 'limit', 'page'];
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
   excludeFields.forEach((elem) => delete queryObj[elem]); // deletes searchTerm (which is to be partial match) from the query and saves the other queries (exact match queries) like email
   console.log({ query }, { queryObj });
   const filterQuery = searchQuery
@@ -56,8 +56,15 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
     skip = (page - 1) * limit;
   }
   const paginateQuery = sortQuery.skip(skip);
-  const limitQuery = await paginateQuery.limit(limit); // Await should be in the last query (which is to be returned) of the filtering chaining
-  return limitQuery;
+  const limitQuery = paginateQuery.limit(limit);
+
+  //-------------------Field Limiting---------------------
+  let fields = '-__v';
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+  }
+  const fieldQuery = await limitQuery.select(fields); // Await should be in the last query (which is to be returned) of the filtering chaining
+  return fieldQuery;
 };
 
 const getSingleStudentFromDB = async (id: string) => {
