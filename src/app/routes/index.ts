@@ -45,7 +45,7 @@ const moduleRoutes = [
     route: AcademicDepartmentRoutes,
   },
   {
-    path: '/semester-registration',
+    path: '/semester-registrations',
     route: SemesterRegistrationRoutes,
   },
 ];
