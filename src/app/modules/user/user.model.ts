@@ -14,10 +14,14 @@ const userSchema = new Schema<TUser, UserModel>(
     password: {
       type: String,
       required: [true, 'Password is required'],
+      select: 0, //Cannot find password through database find operation if select 0 applied
     },
     needsPasswordChange: {
       type: Boolean,
       default: true,
+    },
+    passwordChangedAt: {
+      type: Date,
     },
     role: {
       type: String,
@@ -65,7 +69,7 @@ userSchema.pre('findOneAndUpdate', async function (next) {
 });
 
 userSchema.statics.isUserExistsByCustomId = async function (id) {
-  return await User.findOne({ id });
+  return await User.findOne({ id }).select('+password'); // As password field was set to select 0 in the model, we had to explicitly select this field here. '+password' means password and other fields as well
 };
 
 userSchema.statics.isPasswordMatched = async function (
