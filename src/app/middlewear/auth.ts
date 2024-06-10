@@ -22,7 +22,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       token,
       config.jwt_access_secret as string,
     ) as JwtPayload;
-    const { userId, role } = decoded;
+    const { userId, role, iat } = decoded;
     const user = await User.isUserExistsByCustomId(userId);
 
     // Check if user exists
@@ -40,6 +40,20 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const userStatus = user?.status;
     if (userStatus === 'blocked') {
       throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+    }
+
+    // Check if user changed password after the token has been issued (Possible hack scenario)
+    if (
+      user.passwordChangedAt &&
+      User.isJWTIssuedBeforePasswordChanged(
+        user.passwordChangedAt,
+        iat as number,
+      )
+    ) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        'Password Changed recently: Unauthorized user!',
+      );
     }
 
     // Check if the was request sent by authorized user or not

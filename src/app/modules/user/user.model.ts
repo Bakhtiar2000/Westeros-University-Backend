@@ -72,6 +72,15 @@ userSchema.statics.isUserExistsByCustomId = async function (id) {
   return await User.findOne({ id }).select('+password'); // As password field was set to select 0 in the model, we had to explicitly select this field here. '+password' means password and other fields as well
 };
 
+userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
+  passwordChangedTimestamp: Date,
+  JWTIssuedTimestamp: number,
+) {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000; //Conversion of date-time to millisecond as iat of jwtPayload also returns timestamp in millisecond
+  return passwordChangedTime > JWTIssuedTimestamp;
+};
+
 userSchema.statics.isPasswordMatched = async function (
   plainTextPass,
   hashPass,

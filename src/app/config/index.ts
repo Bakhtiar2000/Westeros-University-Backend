@@ -10,4 +10,7 @@ export default {
   default_pass: process.env.DEFAULT_PASS,
   node_env: process.env.NODE_ENV,
   jwt_access_secret: process.env.JWT_ACCESS_SECRET,
+  jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
+  jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN,
+  jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
 }; //This file is created basically for managing the process.env data. All other folders get access to env data from this config folder.
