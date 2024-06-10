@@ -86,7 +86,7 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
     );
   }
 
-  //--------------------Get the schedules of the faculties that have classes in the same days in payload data---------------------------
+  //--------------------Get the schedules of the faculties that have classes in the same days (Time/ day conflict) in payload data---------------------------
   const existingSchedules = await OfferedCourse.find({
     semesterRegistration,
     faculty,
@@ -124,14 +124,84 @@ const getAllOfferedCoursesFromDB = async (query: Record<string, unknown>) => {
 
 const getSingleOfferedCourseFromDB = async (id: string) => {
   const result = await OfferedCourse.findById(id);
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Offered Course not found');
+  }
   return result;
 };
 
 const updateOfferedCourseIntoDB = async (
   id: string,
-  payload: Partial<TOfferedCourse>,
+  payload: Pick<TOfferedCourse, 'faculty' | 'days' | 'startTime' | 'endTime'>, // Not partial but pick used as we must have these fields in update request
 ) => {
-  console.log(id, payload);
+  const { faculty, days, startTime, endTime } = payload;
+
+  const isOfferedCourseExists = await OfferedCourse.findById(id);
+  if (!isOfferedCourseExists) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Offered Course not found !');
+  }
+
+  const isFacultyExists = await Faculty.findById(faculty);
+  if (!isFacultyExists) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found !');
+  }
+
+  //------------------Checking the status of the semester registration-----------------
+  const semesterRegistrationData = await SemesterRegistration.findById(
+    isOfferedCourseExists.semesterRegistration,
+  );
+
+  if (semesterRegistrationData?.status !== 'UPCOMING') {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `You can not update this offered course as it is in ${semesterRegistrationData?.status} status`,
+    );
+  }
+
+  //---------------------Check Time/ day conflict-----------------------
+  const semesterRegistration = isOfferedCourseExists.semesterRegistration;
+
+  const existingSchedules = await OfferedCourse.find({
+    semesterRegistration,
+    faculty,
+    days: { $in: days },
+  }).select('days startTime endTime');
+
+  const requestedSchedule = { days, startTime, endTime };
+
+  const conflictStatus = hasTimeConflict(existingSchedules, requestedSchedule);
+  if (conflictStatus) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      `Faculty ${isFacultyExists.name.firstName} ${isFacultyExists.name.middleName} ${isFacultyExists.name.lastName} is not available at the requested time/ day!`,
+    );
+  }
+
+  const result = await OfferedCourse.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+  return result;
+};
+
+const deleteOfferedCourseFromDB = async (id: string) => {
+  const isOfferedCourseExists = await OfferedCourse.findById(id);
+  if (!isOfferedCourseExists) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Offered Course not found');
+  }
+
+  const semesterRegistrationData = await SemesterRegistration.findById(
+    isOfferedCourseExists.semesterRegistration,
+  );
+  if (semesterRegistrationData?.status !== 'UPCOMING') {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `You can not update this offered course as it is in ${semesterRegistrationData?.status} status`,
+    );
+  }
+
+  const result = await OfferedCourse.findByIdAndDelete(id);
+
+  return result;
 };
 
 export const OfferedCourseServices = {
@@ -139,4 +209,5 @@ export const OfferedCourseServices = {
   getAllOfferedCoursesFromDB,
   getSingleOfferedCourseFromDB,
   updateOfferedCourseIntoDB,
+  deleteOfferedCourseFromDB,
 };
