@@ -9,6 +9,7 @@ import { Course } from '../course/course.model';
 import { Faculty } from '../faculty/faculty.model';
 import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { hasTimeConflict } from './offeredCourse.utils';
 
 const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   const {
@@ -90,34 +91,17 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
     semesterRegistration,
     faculty,
     days: { $in: days }, // filtering existing schedules of a faculty in a semester for only the days requested in the payload
-  }).select('days startTime endTime');
+  }).select('days startTime endTime'); // Shaping as TSchedule interface
 
-  const requestedSchedule = { days, startTime, endTime }; // From payload
+  const requestedSchedule = { days, startTime, endTime }; // From payload (Shaping as TSchedule interface)
 
-  existingSchedules.forEach((schedule) => {
-    const existingStartTime = new Date(`1970-01-01T${schedule.startTime}`);
-    const existingEndTime = new Date(`1970-01-01T${schedule.endTime}`);
-    const requestedStartTime = new Date(
-      `1970-01-01T${requestedSchedule.startTime}`,
+  const conflictStatus = hasTimeConflict(existingSchedules, requestedSchedule);
+  if (conflictStatus) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      `Faculty ${isFacultyExists.name.firstName} ${isFacultyExists.name.middleName} ${isFacultyExists.name.lastName} is not available at the requested time/ day!`,
     );
-    const requestedEndTime = new Date(
-      `1970-01-01T${requestedSchedule.endTime}`,
-    );
-
-    //Let's Consider:
-    // existingTime: 11.30 - 12.30 ---- requestedTime: 11.00 - 12.00 [Conflict]
-    // existingTime: 09.30 - 10.30 ---- requestedTime: 11.00 - 12.00 [No Conflict]
-
-    if (
-      requestedStartTime < existingEndTime &&
-      requestedEndTime > existingStartTime
-    ) {
-      throw new AppError(
-        httpStatus.CONFLICT,
-        `Faculty ${isFacultyExists.name.firstName} ${isFacultyExists.name.middleName} ${isFacultyExists.name.lastName} is not available at the requested time/ day!`,
-      );
-    }
-  });
+  }
 
   const result = await OfferedCourse.create({ ...payload, academicSemester });
   return result;
