@@ -6,6 +6,8 @@ import auth from '../../middleWear/auth';
 
 const router = express.Router();
 
+router.get('/', auth(), FacultyControllers.getAllFaculties);
+
 router.get('/:id', FacultyControllers.getSingleFaculty);
 
 router.patch(
@@ -15,7 +17,5 @@ router.patch(
 );
 
 router.delete('/:id', FacultyControllers.deleteFaculty);
-
-router.get('/', auth(), FacultyControllers.getAllFaculties);
 
 export const FacultyRoutes = router;
