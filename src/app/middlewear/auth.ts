@@ -18,6 +18,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       );
     }
 
+    // If token found, then verify token and find out decoded jwtPayload fields
     const decoded = jwt.verify(
       token,
       config.jwt_access_secret as string,

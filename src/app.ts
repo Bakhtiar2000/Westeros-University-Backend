@@ -6,12 +6,14 @@ import cors from 'cors'; //Cors also requires a declaration file. We add it by g
 import globalErrorHandler from './app/middleWear/globalErrorHandler';
 import notFound from './app/middleWear/notFound';
 import router from './app/routes';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 
 //parsers
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({ origin: ['http://localhost:5173'] }));
 
 //Application
 app.use('/api/v1', router);
