@@ -3,10 +3,15 @@ import { FacultyControllers } from './faculty.controller';
 import { updateFacultyValidationSchema } from './faculty.validation';
 import { validateRequest } from '../../middleWear/validateRequest';
 import auth from '../../middleWear/auth';
+import USER_ROLE from '../user/user.constant';
 
 const router = express.Router();
 
-router.get('/', auth(), FacultyControllers.getAllFaculties);
+router.get(
+  '/',
+  auth(USER_ROLE.admin, USER_ROLE.faculty),
+  FacultyControllers.getAllFaculties,
+);
 
 router.get('/:id', FacultyControllers.getSingleFaculty);
 
