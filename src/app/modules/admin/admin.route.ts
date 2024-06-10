@@ -2,7 +2,7 @@ import express from 'express';
 import { AdminControllers } from './admin.controller';
 import { updateAdminValidationSchema } from './admin.validation';
 import { validateRequest } from '../../middleWear/validateRequest';
-import { auth } from '../../middleWear/auth';
+import auth from '../../middleWear/auth';
 
 const router = express.Router();
 
