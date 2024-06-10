@@ -8,5 +8,6 @@ export default {
   database_url: process.env.DATABASE_URL,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
   default_pass: process.env.DEFAULT_PASS,
-  NODE_ENV: process.env.NODE_ENV,
+  node_env: process.env.NODE_ENV,
+  jwt_access_secret: process.env.JWT_ACCESS_SECRET,
 }; //This file is created basically for managing the process.env data. All other folders get access to env data from this config folder.
