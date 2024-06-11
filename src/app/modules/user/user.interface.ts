@@ -5,6 +5,7 @@ import USER_ROLE from './user.constant';
 export interface TUser {
   // As we are extending it, it is declared as interface instead of type
   id: string;
+  email: string;
   password: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
