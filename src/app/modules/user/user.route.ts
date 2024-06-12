@@ -31,4 +31,11 @@ router.post(
   UserControllers.createAdmin,
 );
 
+// me route for getting personal data securely
+router.get(
+  '/me',
+  auth(USER_ROLE.student, USER_ROLE.faculty, USER_ROLE.admin),
+  UserControllers.getMe,
+);
+
 export const UserRoutes = router;
