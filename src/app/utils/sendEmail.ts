@@ -7,13 +7,13 @@ export const sendEmail = async (to: string, html: string) => {
     port: 587, // gmail's smtp port
     secure: config.node_env === 'production',
     auth: {
-      user: 'bakhtiarfahim360@gmail.com',
-      pass: 'pzci rsmw kwex rewd', // ph-university's app password set in my gmail's security
+      user: config.smtp_auth_user,
+      pass: config.smtp_auth_pass, // ph-university's app password set in my gmail's security
     },
   });
 
   await transporter.sendMail({
-    from: 'bakhtiarfahim360@gmail.com', // sender address
+    from: config.smtp_auth_user, // sender address
     to, // list of receivers
     subject: 'Change your password', // Subject line
     text: 'Reset password within 10 minutes!', // plain text body

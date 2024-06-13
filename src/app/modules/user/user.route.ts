@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { UserControllers } from './user.controller';
 import { studentValidations } from '../student/student.validation';
 import { validateRequest } from '../../middleWear/validateRequest';
@@ -7,6 +7,7 @@ import { createAdminValidationSchema } from '../admin/admin.validation';
 import auth from '../../middleWear/auth';
 import USER_ROLE from './user.constant';
 import { UserValidation } from './user.validation';
+import { upload } from '../../utils/sendImageToCloudinary';
 
 const router = express.Router();
 
@@ -14,6 +15,12 @@ const router = express.Router();
 router.post(
   '/create-student',
   auth(USER_ROLE.admin),
+  upload.single('file'), // This middleware parse the document in form data format
+  (req: Request, res: Response, next: NextFunction) => {
+    //We need JSON data to move on to the next middleware. That's why, we have to use this extra middleware to make req.body to be in json format like before
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   validateRequest(studentValidations.createStudentValidationSchema),
   UserControllers.createStudent,
 );
