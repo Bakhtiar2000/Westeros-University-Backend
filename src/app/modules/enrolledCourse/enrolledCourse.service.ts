@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { Course } from '../course/course.model';
 import { SemesterRegistration } from '../semesterRegistration/semesterRegistration.model';
 import { Faculty } from '../faculty/faculty.model';
+import { calculateGradeAndPoints } from './enrolledCourse.utils';
 
 const createEnrolledCourseIntoDB = async (
   userId: string,
@@ -178,8 +179,28 @@ const updateEnrolledCourseMarksIntoDB = async (
       "You are not authorized faculty to update this course's mark! !",
     );
   }
+  const modifiedData: Record<string, unknown> = { ...courseMarks }; // Destructured course mark object
 
-  const modifiedData: Record<string, number> = { ...courseMarks }; // Destructured course mark object
+  if (courseMarks?.finalTerm) {
+    const { classTest1, classTest2, midTerm, finalTerm } =
+      isCourseBelongToFaculty.courseMarks;
+
+    console.log(isCourseBelongToFaculty.courseMarks);
+
+    // we considered that classTest1 has 10%, midTerm has 30%, classTest2 has 10%, finalTerm has 50% in the totalMarks
+    const totalMarks =
+      Math.ceil(classTest1 * 0.1) +
+      Math.ceil(midTerm * 0.3) +
+      Math.ceil(classTest2 * 0.1) +
+      Math.ceil(finalTerm * 0.5);
+
+    console.log(totalMarks);
+
+    const result = calculateGradeAndPoints(totalMarks);
+    modifiedData.grade = result.grade;
+    modifiedData.gradePoints = result.gradePoints;
+    modifiedData.isCompleted = true;
+  }
   if (courseMarks && Object.keys(courseMarks).length) {
     for (const [key, value] of Object.entries(courseMarks)) {
       modifiedData[`courseMarks.${key}`] = value;
