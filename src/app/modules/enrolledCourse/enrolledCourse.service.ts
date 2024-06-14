@@ -6,6 +6,8 @@ import { Student } from '../student/student.model';
 import { OfferedCourse } from '../offeredCourse/offeredCourse.model';
 import EnrolledCourse from './enrolledCourse.model';
 import mongoose from 'mongoose';
+import { Course } from '../course/course.model';
+import { SemesterRegistration } from '../semesterRegistration/semesterRegistration.model';
 
 const createEnrolledCourseIntoDB = async (
   userId: string,
@@ -29,15 +31,62 @@ const createEnrolledCourseIntoDB = async (
   if (!student) {
     throw new AppError(httpStatus.NOT_FOUND, 'Student not found !');
   }
-
   const isStudentAlreadyEnrolled = await EnrolledCourse.findOne({
     semesterRegistration: isOfferedCourseExists?.semesterRegistration,
     offeredCourse,
     student: student._id,
   });
-
   if (isStudentAlreadyEnrolled) {
     throw new AppError(httpStatus.CONFLICT, 'Student is already enrolled !');
+  }
+
+  // Check total credit exceeds max credit available for the semester
+  const enrolledCourses = await EnrolledCourse.aggregate([
+    // Stage-1: retrieving a student's all the enrolled courses in a semester
+    {
+      $match: {
+        semesterRegistration: isOfferedCourseExists?.semesterRegistration,
+        student: student?._id,
+      },
+    },
+    // Stage-2: embedding course information
+    {
+      $lookup: {
+        from: 'courses', // lookup from courses collection to enrolledCourses collection
+        localField: 'course', // the field in enrolledCourses collection
+        foreignField: '_id', // the field in courses collection
+        as: 'enrolledCourseData', // will be saved as enrolledCourseData in enrolledCourses collection
+      },
+    },
+    // Stage-3: breaks down enrolledCourseData array into one or several objects
+    {
+      $unwind: '$enrolledCourseData',
+    },
+    // Stage-4: Merge documents and retrieve only the necessary data like _id, totalEnrolledCredits
+    {
+      $group: {
+        _id: null,
+        totalEnrolledCredits: { $sum: '$enrolledCourseData.credits' },
+      },
+    },
+  ]);
+
+  const totalCredits =
+    enrolledCourses.length > 0 ? enrolledCourses[0].totalEnrolledCredits : 0;
+
+  const course = await Course.findById(isOfferedCourseExists.course);
+  const currentCredit = course?.credits;
+
+  const semesterRegistration = await SemesterRegistration.findById(
+    isOfferedCourseExists.semesterRegistration,
+  ).select('maxCredit');
+  const maxCredit = semesterRegistration?.maxCredit;
+
+  if (totalCredits && maxCredit && totalCredits + currentCredit > maxCredit) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'You have exceeded maximum number of credits for this semester!',
+    );
   }
 
   const session = await mongoose.startSession();
