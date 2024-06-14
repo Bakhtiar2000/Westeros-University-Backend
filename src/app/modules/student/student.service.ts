@@ -163,7 +163,6 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
     }
   }
 
-  console.log(modifiedUpdated);
   const result = await Student.findByIdAndUpdate(id, modifiedUpdated, {
     new: true,
     runValidators: true,
