@@ -20,7 +20,11 @@ import { TAdmin } from '../admin/admin.interface';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 
-const createStudentIntoDB = async (password: string, payload: TStudent) => {
+const createStudentIntoDB = async (
+  password: string,
+  payload: TStudent,
+  file: any,
+) => {
   const userData: Partial<TUser> = {};
   userData.password = password || (config.default_pass as string);
   userData.role = 'student';
@@ -41,7 +45,11 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     userData.id = await generateStudentId(admissionSemester); // As generateStudentId is an asynchronous function (in is written in async), we use await here
 
     //Send Image to Cloudinary
-    sendImageToCloudinary();
+    const imageName = `${userData.id}${payload.name.firstName}`; // 21203060Md.
+    const { secure_url } = (await sendImageToCloudinary(
+      imageName,
+      file?.path,
+    )) as any;
 
     //---------------Transaction-1 : Create a User----------------
     const newUser = await User.create([userData], { session }); // Inside transaction rollback, we take the data inside an array, not as Object
@@ -50,6 +58,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     }
     payload.id = newUser[0].id;
     payload.user = newUser[0]._id; // reference id
+    payload.profileImg = secure_url;
 
     //---------------Transaction-2 : Create a Student----------------
     const newStudent = await Student.create([payload], { session });

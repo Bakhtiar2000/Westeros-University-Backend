@@ -4,15 +4,17 @@ import httpStatus from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
 
 const createStudent = catchAsync(async (req, res) => {
-  console.log('File', req.file);
-  console.log('Body', req.body);
-  // const { password, student: studentData } = req.body;
-  // const result = await UserServices.createStudentIntoDB(password, studentData);
+  const { password, student: studentData } = req.body;
+  const result = await UserServices.createStudentIntoDB(
+    password,
+    studentData,
+    req.file,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Student is created successfully',
-    data: null,
+    data: result,
   });
 });
 
