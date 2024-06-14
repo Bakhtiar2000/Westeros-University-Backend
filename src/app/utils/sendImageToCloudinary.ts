@@ -36,7 +36,7 @@ export const sendImageToCloudinary = (imageName: string, path: string) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, process.cwd() + '/uploads');
+    cb(null, process.cwd() + '/uploads'); // multer uploads the file to the uploads destination
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
