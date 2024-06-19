@@ -55,7 +55,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       );
     }
 
-    // Check if the was request sent by authorized user or not
+    // Check if the request was sent by authorized user or not
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(
         httpStatus.UNAUTHORIZED,

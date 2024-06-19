@@ -2,13 +2,14 @@ import mongoose from 'mongoose';
 import config from './app/config';
 import app from './app';
 import { Server } from 'http';
+import seedSuperAdmin from './app/DB';
 
 let server: Server;
 
 async function main() {
   try {
-    await mongoose.connect(config.database_url as string); // As we are sure that this database_url is string, we forcefully make it's type string. Otherwise there could be a type error
-
+    await mongoose.connect(config.database_url as string); // This line is connecting the project with mongoDB
+    seedSuperAdmin(); // Automatically creates a super-admin without user input when the database is first connected
     server = app.listen(config.port, () => {
       console.log(`App listening on port ${config.port}`);
     });
