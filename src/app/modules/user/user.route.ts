@@ -14,7 +14,7 @@ const router = express.Router();
 //Will call controller function
 router.post(
   '/create-student',
-  auth(USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   upload.single('file'), // This middleware parse the document in form data format
   (req: Request, res: Response, next: NextFunction) => {
     //We need JSON data to move on to the next middleware. That's why, we have to use this extra middleware to make req.body to be in json format like before
@@ -27,7 +27,7 @@ router.post(
 
 router.post(
   '/create-faculty',
-  auth(USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
@@ -39,7 +39,7 @@ router.post(
 
 router.post(
   '/create-admin',
-  auth(USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
@@ -51,7 +51,7 @@ router.post(
 
 router.post(
   '/change-status/:id',
-  auth(USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(UserValidation.changeStatusValidationSchema),
   UserControllers.changeStatus,
 );
@@ -59,7 +59,12 @@ router.post(
 // me route for getting personal data securely
 router.get(
   '/me',
-  auth(USER_ROLE.student, USER_ROLE.faculty, USER_ROLE.admin),
+  auth(
+    USER_ROLE.superAdmin,
+    USER_ROLE.student,
+    USER_ROLE.faculty,
+    USER_ROLE.admin,
+  ),
   UserControllers.getMe,
 );
 

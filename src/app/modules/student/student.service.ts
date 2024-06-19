@@ -67,7 +67,12 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   // const fieldQuery = await limitQuery.select(fields); // Await should be in the last query (which is to be returned) of the filtering chaining
   // return fieldQuery;
 
-  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+  const studentSearchableFields = [
+    'email',
+    'name.firstName',
+    'name.lastName',
+    'presentAddress',
+  ];
   const studentQuery = new QueryBuilder(
     Student.find()
       .populate('admissionSemester')
