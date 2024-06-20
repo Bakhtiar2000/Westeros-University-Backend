@@ -182,10 +182,14 @@ const updateEnrolledCourseMarksIntoDB = async (
   const modifiedData: Record<string, unknown> = { ...courseMarks }; // Destructured course mark object
 
   if (courseMarks?.finalTerm) {
-    const { classTest1, classTest2, midTerm, finalTerm } =
-      isCourseBelongToFaculty.courseMarks;
-
-    console.log(isCourseBelongToFaculty.courseMarks);
+    const classTest1 =
+      courseMarks.classTest1 || isCourseBelongToFaculty.courseMarks.classTest1;
+    const classTest2 =
+      courseMarks.classTest2 || isCourseBelongToFaculty.courseMarks.classTest2;
+    const midTerm =
+      courseMarks.midTerm || isCourseBelongToFaculty.courseMarks.midTerm;
+    const finalTerm =
+      courseMarks.finalTerm || isCourseBelongToFaculty.courseMarks.finalTerm;
 
     // we considered that classTest1 has 10%, midTerm has 30%, classTest2 has 10%, finalTerm has 50% in the totalMarks
     const totalMarks =
@@ -193,8 +197,6 @@ const updateEnrolledCourseMarksIntoDB = async (
       Math.ceil(midTerm * 0.3) +
       Math.ceil(classTest2 * 0.1) +
       Math.ceil(finalTerm * 0.5);
-
-    console.log(totalMarks);
 
     const result = calculateGradeAndPoints(totalMarks);
     modifiedData.grade = result.grade;
