@@ -8,12 +8,14 @@ const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
   const { refreshToken, accessToken, needsPasswordChange } = result;
 
-  // Send refreshToken cookies to frond-end when user is logged in
+  // Send refreshToken cookies to frond-end when user is logged in.
+  // N.B.: Cannot use cookie in free hosting sites. To use cookie, must use paid hosting server
   res.cookie('refreshToken', refreshToken, {
     secure: config.node_env === 'production',
     httpOnly: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24 * 365, // cookie age
   });
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

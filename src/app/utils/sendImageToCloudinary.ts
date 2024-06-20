@@ -1,4 +1,8 @@
-import { v2 as cloudinary } from 'cloudinary';
+import {
+  UploadApiErrorResponse,
+  UploadApiResponse,
+  v2 as cloudinary,
+} from 'cloudinary';
 import config from '../config';
 import multer from 'multer';
 import fs from 'fs'; // node js built in module, not third party
@@ -17,9 +21,9 @@ export const sendImageToCloudinary = (imageName: string, path: string) => {
       { public_id: imageName },
       function (error, result) {
         if (error) {
-          reject(error);
+          reject(error as UploadApiErrorResponse);
         }
-        resolve(result);
+        resolve(result as UploadApiResponse);
 
         // unlink (delete) the file that was uploaded in uploads folder after resolved
         fs.unlink(path, (err) => {

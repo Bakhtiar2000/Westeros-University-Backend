@@ -74,14 +74,9 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
     'presentAddress',
   ];
   const studentQuery = new QueryBuilder(
-    Student.find()
-      .populate('admissionSemester')
-      .populate({
-        path: 'academicDepartment',
-        populate: {
-          path: 'academicFaculty', // Inside academic department. We can see the details of academic faculty
-        },
-      }),
+    Student.find().populate(
+      'admissionSemester academicDepartment academicFaculty',
+    ),
     query,
   )
     .search(studentSearchableFields)

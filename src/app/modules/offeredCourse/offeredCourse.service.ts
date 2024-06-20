@@ -124,7 +124,15 @@ const getAllOfferedCoursesFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
-const getMyOfferedCoursesFromDB = async (userId: string) => {
+const getMyOfferedCoursesFromDB = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  //pagination setup
+  const page = Number(query?.page) || 1;
+  const limit = Number(query?.limit) || 10;
+  const skip = (page - 1) * limit;
+
   const student = await Student.findOne({ id: userId });
   if (!student) {
     throw new AppError(httpStatus.NOT_FOUND, 'User is not found');
@@ -143,7 +151,7 @@ const getMyOfferedCoursesFromDB = async (userId: string) => {
     );
   }
 
-  const result = await OfferedCourse.aggregate([
+  const aggregationQuery = [
     // Stage - 01
     {
       $match: {
@@ -177,7 +185,7 @@ const getMyOfferedCoursesFromDB = async (userId: string) => {
         pipeline: [
           {
             $match: {
-              // If (semesterRegistration == currentOngoingRegistrationSemester && student == currentStudent && isEnrolled == true)
+              // if (semesterRegistration == currentOngoingRegistrationSemester && student == currentStudent && isEnrolled == true){ // include the enrolledcourse inside enrolledCourses array field }
               $expr: {
                 $and: [
                   {
@@ -202,8 +210,60 @@ const getMyOfferedCoursesFromDB = async (userId: string) => {
     },
     // Stage - 05
     {
+      $lookup: {
+        from: 'enrolledcourses',
+        let: {
+          currentStudent: student._id,
+        },
+        pipeline: [
+          {
+            $match: {
+              // if (student == currentStudent && isCompleted == true){ // include the enrolledcourse inside completedCourses array field }
+              $expr: {
+                $and: [
+                  {
+                    $eq: ['$student', '$$currentStudent'],
+                  },
+                  {
+                    $eq: ['$isCompleted', true],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'completedCourses',
+      },
+    },
+    // Stage - 06
+    {
       $addFields: {
-        // boolean isAlreadyEnrolled = enrolledCourses.map(enroll => enroll.course === course._id)
+        // const completedCourseIds = completedCourses.map(completed => completed.course)
+        completedCourseIds: {
+          $map: {
+            input: '$completedCourses',
+            as: 'completed',
+            in: '$$completed.course',
+          },
+        },
+      },
+    },
+    // Stage - 07
+    {
+      $addFields: {
+        // const isPreRequisitesFulFilled = (course.preRequisiteCourses.length == 0) || ( completedCourseIds.includes(course.preRequisiteCourses.course))
+        isPreRequisitesFulFilled: {
+          $or: [
+            { $eq: ['$course.preRequisiteCourses', []] },
+            {
+              $setIsSubset: [
+                '$course.preRequisiteCourses.course',
+                '$completedCourseIds',
+              ],
+            },
+          ],
+        },
+        // const isAlreadyEnrolled = enrolledCourses.map(enroll => enroll.course === course._id)
         isAlreadyEnrolled: {
           $in: [
             '$course._id',
@@ -218,15 +278,42 @@ const getMyOfferedCoursesFromDB = async (userId: string) => {
         },
       },
     },
-    // Stage -06
+    // Stage -08
     {
       $match: {
         isAlreadyEnrolled: false,
+        isPreRequisitesFulFilled: true,
       },
     },
+  ];
+
+  const paginationQuery = [
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+  ];
+
+  const result = await OfferedCourse.aggregate([
+    ...aggregationQuery,
+    ...paginationQuery,
   ]);
 
-  return result;
+  const total = (await OfferedCourse.aggregate(aggregationQuery)).length;
+
+  const totalPage = Math.ceil(result.length / limit);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage,
+    },
+    result,
+  };
 };
 
 const getSingleOfferedCourseFromDB = async (id: string) => {
