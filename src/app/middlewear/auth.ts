@@ -20,7 +20,16 @@ const auth = (...requiredRoles: TUserRole[]) => {
     }
 
     // If token found, then verify token and find out decoded jwtPayload fields
-    const decoded = verifyToken(token, config.jwt_access_secret as string);
+    let decoded;
+    try {
+      decoded = verifyToken(token, config.jwt_access_secret as string);
+    } catch (error) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        'Unauthorized access happened',
+      );
+    }
+    console.log(decoded);
     const { userId, role, iat } = decoded;
     const user = await User.isUserExistsByCustomId(userId);
 
