@@ -19,7 +19,7 @@ app.use(cors({ origin: ['http://localhost:5173'], credentials: true })); // To a
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
-  Promise.reject();
+  // Promise.reject();
   res.send('Hello World!');
 });
 

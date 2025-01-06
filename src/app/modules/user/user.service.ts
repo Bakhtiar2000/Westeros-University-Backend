@@ -122,7 +122,7 @@ const createFacultyIntoDB = async (
 
     if (file) {
       //Send Image to Cloudinary
-      const imageName = `${userData.id}${payload.name.firstName}`; // 21203060Md.
+      const imageName = `${userData.id}${payload.name.firstName}`;
       const { secure_url } = (await sendImageToCloudinary(
         imageName,
         file?.path,
