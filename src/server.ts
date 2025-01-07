@@ -21,8 +21,8 @@ async function main() {
 main();
 
 // Handling unhandled Rejection (Asynchronous code)
-process.on('unhandledRejection', () => {
-  console.log('👍👍 unhandled Rejection detected. Shutting down 👍👍');
+process.on('unhandledRejection', (reason) => {
+  console.log('👍👍 unhandled Rejection detected. Shutting down 👍👍', reason);
   if (server) {
     server.close(() => {
       process.exit(1); // If server runs any asynchronous code, we need to let it finish the process and then shut off
@@ -32,8 +32,8 @@ process.on('unhandledRejection', () => {
 });
 
 // Handling Uncaught Exception (Synchronous code)
-process.on('uncaughtException', () => {
-  console.log('👍👍 Uncaught Exception detected. Shutting down 👍👍');
+process.on('uncaughtException', (err) => {
+  console.log('👍👍 Uncaught Exception detected. Shutting down 👍👍 ', err);
   process.exit(1); // Shut off immediately when it is a synchronous code
 });
 
