@@ -224,9 +224,9 @@ const createAdminIntoDB = async (
 const getMe = async (userId: string, role: string) => {
   let result = null;
   if (role == 'student') {
-    result = await Student.findOne({ id: userId }).populate('user');
+    result = await Student.findOne({ id: userId }).populate('user').populate('academicDepartment').populate('academicFaculty');
   } else if (role == 'faculty') {
-    result = await Faculty.findOne({ id: userId }).populate('user');
+    result = await Faculty.findOne({ id: userId }).populate('user').populate('academicDepartment').populate('academicFaculty');
   } else if (role == 'admin') {
     result = await Admin.findOne({ id: userId }).populate('user');
   }
