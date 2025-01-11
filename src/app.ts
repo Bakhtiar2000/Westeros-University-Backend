@@ -12,7 +12,7 @@ import config from './app/config';
 const app: Application = express();
 
 const allowedOrigins = config.node_env === 'production'
-  ? ['https://westeros-university-backend.vercel.app/']
+  ? ['https://westeros-university-backend.onrender.com']
   : ['http://localhost:5173'];
 
 //parsers
