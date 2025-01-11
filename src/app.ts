@@ -7,13 +7,18 @@ import globalErrorHandler from './app/middleWear/globalErrorHandler';
 import notFound from './app/middleWear/notFound';
 import router from './app/routes';
 import cookieParser from 'cookie-parser';
+import config from './app/config';
 
 const app: Application = express();
+
+const allowedOrigins = config.node_env === 'production'
+  ? ['https://westeros-university-backend.vercel.app/']
+  : ['http://localhost:5173'];
 
 //parsers
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: ['http://localhost:5173'], credentials: true })); // To avoid cookie and login related problems use credentials: true
+app.use(cors({ origin: allowedOrigins, credentials: true })); // To avoid cookie and login related problems use credentials: true
 
 //Application
 app.use('/api/v1', router);
